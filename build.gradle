@@ -12,8 +12,11 @@ buildscript {
     }
 }
 
+//apply plugin 'android-maven'
+
 allprojects {
     repositories {
         jcenter()
     }
 }
+apply plugin: 'maven'
