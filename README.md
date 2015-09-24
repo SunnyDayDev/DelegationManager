@@ -78,5 +78,5 @@
   }
   ```
   
-**Note: Getters works the same, but only first delegate was triggered. And vice verse if return type of method is Void all delegates for requested type of delegate will triggered.**
+**Note: Getters works the same, but only first delegate will triggered. And vice verse if return type of method is Void all delegates for requested type of delegate will triggered.**
   
