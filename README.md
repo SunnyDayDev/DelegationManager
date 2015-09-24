@@ -64,7 +64,7 @@
   public FragmentB extends DialogFragment{
   
     @Override
-    onCreateView(...){
+    public View onCreateView(...){
       //init your dialog
       Button someButton = (Button) view.findViewById(R.id.somebutton);
       
