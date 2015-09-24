@@ -17,14 +17,28 @@ public class DelegationManager {
     private HashMap<Class, ArrayList<Object>> mMap = new HashMap<>();
 
     public void addDelegate(Object holder, Class type){
+        addDelegate(holder, type, false);
+    }
+
+    /**
+     * Add delegate. If it has methods with not Void return type and must use it
+     * than firstReturner must be true.
+     * @param holder - reference on object that implement delegated type
+     * @param type - delegated type
+     * @param firstReturner - if true return value will get from it.
+     */
+    public void addDelegate(Object holder, Class type, boolean firstReturner){
         ArrayList<Object> holders = mMap.get(type);
-        if (holders != null){
-            holders.add(holder);
-        }else{
+        if (holders == null){
             holders = new ArrayList<>();
-            holders.add(holder);
-            mMap.put(type, holders);
         }
+        //If must get return value from it, set it first in array
+        if (firstReturner){
+            holders.add(0, holder);
+        }else{
+            holders.add(holder);
+        }
+        mMap.put(type, holders);
     }
 
     /**
@@ -60,22 +74,28 @@ public class DelegationManager {
         }
     }
 
-    private Object getDelegateFor(final Class mClass){
-        return Proxy.newProxyInstance(mClass.getClassLoader(), new Class[]{mClass}, new InvocationHandler() {
+    /**
+     * Get delegated interface
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getDelegateInterface(final Class<T> tClass){
+        return (T) Proxy.newProxyInstance(tClass.getClassLoader(), new Class[]{tClass}, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                ArrayList<Object> handlers = mMap.get(mClass);
+                ArrayList<Object> handlers = mMap.get(tClass);
                 if (handlers == null) return null;
 
+                //if have Void return value, do work with all delegates in array
+                //Else get return value from first item
                 for (Object handler : handlers) {
-                    method.invoke(handler, args);
+                    if (method.getReturnType().equals(Void.TYPE)) {
+                        method.invoke(handler, args);
+                    } else {
+                        return method.invoke(handler, args);
+                    }
                 }
                 return null;
             }
         });
-    }
-
-    public <T> T getDelegateInterface(Class<T> tClass){
-        return ((T) getDelegateFor(tClass));
     }
 }
