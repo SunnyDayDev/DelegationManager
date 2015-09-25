@@ -1,12 +1,12 @@
 package com.development.sunnyday.delegationmanager;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Created by sashka on 18.09.15.
@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public class DelegationManager {
 
-    private HashMap<Class, ArrayList<Object>> mMap = new HashMap<>();
+    private HashMap<Class, ArrayList<WeakReference<Object>>> mMap = new HashMap<>();
 
     public void addDelegate(Object holder, Class type){
         addDelegate(holder, type, false);
@@ -28,26 +28,35 @@ public class DelegationManager {
      * @param firstReturner - if true return value will get from it.
      */
     public void addDelegate(Object holder, Class type, boolean firstReturner){
-        ArrayList<Object> holders = mMap.get(type);
+        ArrayList<WeakReference<Object>> holders = mMap.get(type);
         if (holders == null){
             holders = new ArrayList<>();
+            mMap.put(type, holders);
         }
+
+        //Create weak reference (no need control memory leak)
+        WeakReference<Object> reference = new WeakReference<>(holder);
         //If must get return value from it, set it first in array
         if (firstReturner){
-            holders.add(0, holder);
+            holders.add(0, reference);
         }else{
-            holders.add(holder);
+            holders.add(reference);
         }
-        mMap.put(type, holders);
     }
 
     /**
      * Remove all delegated interface by type and holder reference.
      */
     public void removeDelegate(Object holder, Class type) {
-        ArrayList<Object> holders = mMap.get(type);
+        ArrayList<WeakReference<Object>> holders = mMap.get(type);
         if (holders != null){
-            holders.remove(holder);
+            Iterator<WeakReference<Object>> iterator = holders.iterator();
+            while (iterator.hasNext()){
+                WeakReference<Object> reference = iterator.next();
+                if (reference.get() == null || reference.get() == holder){
+                    iterator.remove();
+                }
+            }
             if (holders.size() == 0){
                 mMap.remove(type);
             }
@@ -58,19 +67,8 @@ public class DelegationManager {
      * Remove all delegated interfaces by holder reference.
      */
     public void removeDelegate(Object holder) {
-        Iterator<Map.Entry<Class, ArrayList<Object>>> iterator
-                = mMap.entrySet().iterator();
-        while (iterator.hasNext()){
-            Map.Entry<Class, ArrayList<Object>> entry = iterator.next();
-            ArrayList<Object> holders = entry.getValue();
-            if (holders != null){
-                holders.remove(holder);
-                if (holders.size() == 0){
-                    iterator.remove();
-                }
-            }else{
-                iterator.remove();
-            }
+        for (Class key : mMap.keySet()) {
+            removeDelegate(holder, key);
         }
     }
 
@@ -82,19 +80,29 @@ public class DelegationManager {
         return (T) Proxy.newProxyInstance(tClass.getClassLoader(), new Class[]{tClass}, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                ArrayList<Object> handlers = mMap.get(tClass);
+                ArrayList<WeakReference<Object>> handlers = mMap.get(tClass);
                 if (handlers == null) return null;
 
                 //if have Void return value, do work with all delegates in array
                 //Else get return value from first item
-                for (Object handler : handlers) {
-                    if (method.getReturnType().equals(Void.TYPE)) {
-                        method.invoke(handler, args);
-                    } else {
-                        return method.invoke(handler, args);
+                Object result = null;
+                boolean resultSetted = false;
+                boolean isVoid = method.getReturnType().equals(Void.TYPE);
+
+                Iterator<WeakReference<Object>> refIterator = handlers.iterator();
+                while (refIterator.hasNext()){
+                    WeakReference<Object> reference = refIterator.next();
+                    Object delegate = reference.get();
+                    if (delegate == null){
+                        refIterator.remove();
+                    }else{
+                        if (isVoid || !resultSetted){
+                            resultSetted = true;
+                            result = method.invoke(delegate, args);
+                        }
                     }
                 }
-                return null;
+                return result;
             }
         });
     }
