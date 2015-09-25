@@ -11,7 +11,7 @@
   }
   
   dependencies{
-    compile 'com.github.SunnyDayDev:DelegationManager:1.1.2'
+    compile 'com.github.SunnyDayDev:DelegationManager:1.1.3'
   }
   ```
 
@@ -40,15 +40,6 @@
                .getDelegationManager()
                .addDelegate(this, OnClickListener.class);
     }
-
-    @Override
-    public void onDetach() {
-       ((DelegationInterface) getActivity())
-               .getDelegationManager()
-               .removeDelegate(this, OnClickListener.class);
-               //or .removeDelegate(this) to remove all delegates
-       super.onDetach();
-    }
     
     @Override
     public void onClick(View v){
@@ -57,7 +48,7 @@
     }
   }
   ```
-  **Note: You need remove delegate on onDetach() to prevent memmory leaks.**
+  **Note: You no need remove delegate on onDetach() to prevent memory leaks, cause DelegateManager use WeakReference.**
   
   And get delegate from another fragment/dialog:
   ```
@@ -78,5 +69,5 @@
   }
   ```
   
-**Note: Getters works the same, but only first delegate will triggered. And vice verse if return type of method is Void all delegates for requested type of delegate will triggered.**
+**Note: Getters works the same, but only first delegate will triggered. And if return type of method is Void all delegates for requested type of delegate will triggered.**
   
