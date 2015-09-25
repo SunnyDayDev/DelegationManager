@@ -62,7 +62,7 @@
       //Get OnClickListener from delegate
       OnClickListener delegate = ((DelegateInterface)getActivity)
           .getDelegateManager()
-          .getDelegateInterface(OnDialogItemClickListener.class);
+          .getDelegateInterface(OnClickListener.class);
       someButton.setOnClickListener(delegate);
     }
     
