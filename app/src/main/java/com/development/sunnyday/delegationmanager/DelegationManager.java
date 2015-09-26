@@ -16,16 +16,10 @@ import java.util.WeakHashMap;
  * mail: sunnyday.development@gmail.com
  */
 public class DelegationManager {
-    protected static WeakHashMap<Activity, DelegationManager> sManagersMap;
+
+    private static WeakHashMap<Activity, DelegationManager> sManagersMap = new WeakHashMap<>();
 
     private HashMap<Class, ArrayList<WeakReference<Object>>> mMap = new HashMap<>();
-
-    //protected static WeakHashMap<Activity, DelegationManager> getStaticManagersMap(){
-    //    if (sManagersMap == null){
-    //        sManagersMap = new WeakHashMap<>();
-    //    }
-    //    return sManagersMap;
-    //}
 
     public static void delegateToActivity(Activity activity, Object holder){
         Delegate delegate = holder.getClass().getAnnotation(Delegate.class);

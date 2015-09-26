@@ -7,10 +7,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 
 import com.development.sunnyday.delegationmanager.Delegate;
-import com.development.sunnyday.delegationmanager.DelegationInterface;
 import com.development.sunnyday.delegationmanager.DelegationManager;
 
 /**
