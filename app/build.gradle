@@ -1,5 +1,6 @@
+//apply plugin: 'me.tatarka.retrolambda'
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
+//apply plugin: 'com.github.dcendents.android-maven'
 
 group='com.github.SunnyDayDev'
 
@@ -11,6 +12,11 @@ android {
         minSdkVersion 1
         targetSdkVersion 22
     }
+
+    //compileOptions{
+    //    sourceCompatibility org.gradle.api.JavaVersion.VERSION_1_8
+    //    targetCompatibility org.gradle.api.JavaVersion.VERSION_1_8
+    //}
 }
 
 dependencies {

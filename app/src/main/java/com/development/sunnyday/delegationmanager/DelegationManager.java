@@ -1,5 +1,7 @@
 package com.development.sunnyday.delegationmanager;
 
+import android.app.Activity;
+
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -7,14 +9,41 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.WeakHashMap;
 
 /**
  * Created by sashka on 18.09.15.
  * mail: sunnyday.development@gmail.com
  */
 public class DelegationManager {
+    protected static WeakHashMap<Activity, DelegationManager> sManagersMap;
 
     private HashMap<Class, ArrayList<WeakReference<Object>>> mMap = new HashMap<>();
+
+    //protected static WeakHashMap<Activity, DelegationManager> getStaticManagersMap(){
+    //    if (sManagersMap == null){
+    //        sManagersMap = new WeakHashMap<>();
+    //    }
+    //    return sManagersMap;
+    //}
+
+    public static void delegateToActivity(Activity activity, Object holder){
+        Delegate delegate = holder.getClass().getAnnotation(Delegate.class);
+        if (delegate != null && delegate.value().length > 0){
+            DelegationManager dm = sManagersMap.get(activity);
+            if (dm == null){
+                dm = new DelegationManager();
+                sManagersMap.put(activity, dm);
+            }
+            for (Class item:delegate.value()){
+                dm.addDelegate(holder, item);
+            }
+        }
+    }
+
+    public static DelegationManager get(Activity activity){
+        return sManagersMap.get(activity);
+    }
 
     public void addDelegate(Object holder, Class type){
         addDelegate(holder, type, false);
